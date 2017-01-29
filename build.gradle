@@ -1,0 +1,55 @@
+
+apply plugin: 'cpp'
+
+
+
+model {
+	repositories {
+        libs(PrebuiltLibraries) {
+            boost {
+                headers.srcDir "3rd-party-lib/boost_1_55_0/boost"                
+            }
+            nodev8 {
+            	headers.srcDir "/home/richard/.node-gyp/7.1.0/include/node" 
+            }
+            caffe { 
+            	headers.srcDir "/home/richard/caffe/include"
+            	headers.srcDir "/home/richard/caffe/.build_release/src" 
+            }
+            cuda { 
+            	headers.srcDir "/usr/local/cuda/include" 
+            }
+		}
+	}
+	
+    binaries {
+        all {
+            cppCompiler.define "CAFFE_VERSION=1.0.0-rc3"
+            cppCompiler.define "NDEBUG"
+            cppCompiler.define "USE_CUDNN"
+            cppCompiler.define "USE_OPENCV"
+            cppCompiler.define "USE_LMDB"
+
+            if (toolChain in Gcc) {
+                cppCompiler.args "-MMD", "-MP",  "-pthread", "-fPIC", "-O2", "-fmax-errors=5", "-Wno-sign-compare" 
+                linker.args "-shared", "-Wl,-soname,libcaffenetview.so"
+            }
+        }
+    }
+    
+    components {
+		caffenetview(NativeLibrarySpec) {		
+			binaries.withType(StaticLibraryBinarySpec) {
+                buildable = false
+            }	
+   			sources {
+		      cpp.lib library: 'boost', linkage: 'api'
+              cpp.lib library: 'nodev8', linkage: 'api'
+              cpp.lib library: 'cuda', linkage: 'api'
+              cpp.lib library: 'caffe', linkage: 'api'
+    	   } 
+    	}
+    }
+}
+
+

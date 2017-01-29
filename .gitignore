@@ -1,0 +1,7 @@
+.gradle
+.project
+.settings
+build
+gradle
+gradlew
+node_modules
