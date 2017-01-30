@@ -32,13 +32,12 @@ namespace caffenetview {
     public:
       CaffeNetViewImpl( std::string prototxt ) {
       	if( !prototxt.empty() ) {
-	      caffe::NetParameter parsed;
-		  int fd = open( prototxt.c_str(), O_RDONLY);
-		  io::FileInputStream fstream(fd);
-		  TextFormat::Parse(&fstream, &parsed);
-		
-		  RepeatedPtrField<caffe::LayerParameter> layers = parsed.layer() ;
-		
+	      caffe::NetParameter networkConfig ;	
+		  TextFormat::ParseFromString(prototxt, &networkConfig);
+			
+		  RepeatedPtrField<caffe::LayerParameter> layers = networkConfig.layer() ;
+		  
+		  cout << "Read " << layers.size() << " layers." << endl ;
 		  for ( int i=0 ; i<layers.size() ; ++i ) {
 			cout << layers.Get(i).name() << endl ;
 		  }
@@ -47,7 +46,7 @@ namespace caffenetview {
       ~CaffeNetViewImpl() {
       }
 
-    private:
+    private: 
   } ;
 
   CaffeNetView *create( std::string prototxt ) {

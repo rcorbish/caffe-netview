@@ -40,7 +40,7 @@ class WrappedCaffeNetView : public node::ObjectWrap
 
 
       // define how we access the attributes
-      tpl->InstanceTemplate()->SetAccessor(String::NewFromUtf8(isolate, "name"), GetCoeff, SetCoeff);
+      tpl->InstanceTemplate()->SetAccessor(String::NewFromUtf8(isolate, "name"), GetCoeff );
 
       constructor.Reset(isolate, tpl->GetFunction());
       exports->Set(String::NewFromUtf8(isolate, "CaffeNetView"), tpl->GetFunction());
@@ -51,14 +51,16 @@ class WrappedCaffeNetView : public node::ObjectWrap
 	The C++ constructor.
    */
     explicit WrappedCaffeNetView( std::string prototxt ) {
-        name_ = new std::string( prototxt ) ;
+        name_ = NULL ;
+        netview_ = caffenetview::create( prototxt ) ;
     }
     
     /*
 	The destructor needs to free anything
     */
     ~WrappedCaffeNetView() { 
-    delete name_ ;
+    	delete name_ ;
+    	delete netview_ ;
     }
 
     /*
@@ -89,8 +91,8 @@ class WrappedCaffeNetView : public node::ObjectWrap
  ATTRIBUTES    
 -----------------------------------------------*/
     std::string *name_  ; 	/*< Name of this net */
-
-
+	caffenetview::CaffeNetView *netview_ ;  /*< implementing protobuf code */
+	
 /*-----------------------------------------------
  JS METHODS    
 -----------------------------------------------*/
@@ -99,7 +101,6 @@ class WrappedCaffeNetView : public node::ObjectWrap
     static void Inspect(const FunctionCallbackInfo<Value>& args);
 
     static void GetCoeff(Local<String> property, const PropertyCallbackInfo<Value>& info);
-    static void SetCoeff(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void>& info);
 
     static v8::Persistent<v8::Function> constructor; /**< a nodejs constructor for this object */
 } ;
@@ -152,21 +153,6 @@ void WrappedCaffeNetView::GetCoeff(Local<String> property, const PropertyCallbac
 
 
  
-
-/**
-	This is a nodejs defined method to set writeable attributes. 
-*/
-void WrappedCaffeNetView::SetCoeff(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void>& info) {
-  WrappedCaffeNetView* self = ObjectWrap::Unwrap<WrappedCaffeNetView>(info.This());
-
-  v8::String::Utf8Value s(property);
-  std::string str(*s);
-
-  if ( str == "name" ) {
-    v8::String::Utf8Value chars( value->ToString() ) ;
-	self->name_ = new std::string( *chars );
-  }
-}
 
 /**
 	The module init script - called by nodejs at load time

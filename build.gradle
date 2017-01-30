@@ -2,7 +2,6 @@
 apply plugin: 'cpp'
 
 
-
 model {
 	repositories {
         libs(PrebuiltLibraries) {
@@ -53,3 +52,25 @@ model {
 }
 
 
+task gypconfig( type: Exec ) {
+	inputs.file 'binding.gyp' 
+	outputs.file 'build/config.gypi'
+	
+	description 'Creates node-gyp config before node-gyp build stage.'
+	executable 'node-gyp.sh'
+    args 'configure'
+}
+
+
+task gypbuild( dependsOn: 'gypconfig', type: Exec) {
+		
+	inputs.file 'src/Caffe.cpp' 
+	inputs.files gypconfig.inputs.files	
+	outputs.file 'build/Release/caffe-netview.node' 
+
+	description 'Builds the npm package'
+	executable 'node-gyp.sh'
+    args 'build'
+}
+
+build.finalizedBy  gypbuild 
