@@ -17,8 +17,8 @@
         "src/caffenetview/headers"
       ],
       "cflags": [ "-fmax-errors=5", "-Wno-sign-compare", "-Wall" ],
-      "ldflags": [ 
-      	"-Wl,-rpath,./build/libs/caffenetview/shared",
+      "ldflags": [
+      	"-Wl,-rpath,/home/richard/workspace/caffe-netview/build/libs/caffenetview/shared",
       	"-Wl,-rpath,/home/richard/caffe/.build_release/lib"
        ],
       'xcode_settings': {

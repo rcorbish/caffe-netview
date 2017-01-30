@@ -41,6 +41,7 @@ class WrappedCaffeNetView : public node::ObjectWrap
 
       // define how we access the attributes
       tpl->InstanceTemplate()->SetAccessor(String::NewFromUtf8(isolate, "name"), GetCoeff );
+      tpl->InstanceTemplate()->SetAccessor(String::NewFromUtf8(isolate, "length"), GetCoeff );
 
       constructor.Reset(isolate, tpl->GetFunction());
       exports->Set(String::NewFromUtf8(isolate, "CaffeNetView"), tpl->GetFunction());
@@ -148,7 +149,10 @@ void WrappedCaffeNetView::GetCoeff(Local<String> property, const PropertyCallbac
 
   if (str == "name" && obj->name_ != NULL ) {
     info.GetReturnValue().Set( String::NewFromUtf8( isolate,  obj->name_->c_str() ) ) ;
+  } else if (str == "length" && obj->netview_ != NULL ) {
+    info.GetReturnValue().Set( obj->netview_->size() ) ;
   }
+
 }
 
 

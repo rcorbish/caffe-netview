@@ -30,28 +30,42 @@ namespace caffenetview {
   class CaffeNetViewImpl : public CaffeNetView {
 
     public:
-      CaffeNetViewImpl( std::string prototxt ) {
+      CaffeNetViewImpl( std::string prototxt ) : layers_()  {
       	if( !prototxt.empty() ) {
 	      caffe::NetParameter networkConfig ;	
 		  TextFormat::ParseFromString(prototxt, &networkConfig);
 			
 		  RepeatedPtrField<caffe::LayerParameter> layers = networkConfig.layer() ;
 		  
-		  cout << "Read " << layers.size() << " layers." << endl ;
 		  for ( int i=0 ; i<layers.size() ; ++i ) {
-			cout << layers.Get(i).name() << endl ;
+		  	caffe::LayerParameter layer = layers.Get(i) ;
+			//cout << layers.Get(i).name() << endl ;
+			layers_.push_back( new Layer( layer.name() ) ) ;
+			
+			std::vector<const FieldDescriptor*> output ;
+			layer.GetReflection()->ListFields( layer, &output ) ;
+			cout << "Layer" << i << " ... " << output.size() << endl ;
 		  }
 		}
       }
       ~CaffeNetViewImpl() {
+      	 for( Layer *l : layers_ ) {
+        	delete l ;
+    	 }
       }
 
+        int size() { return layers_.size() ; }
+        const Layer & operator []( int ix ) { return *(layers_[ix]) ; } 
     private: 
+    	std::vector<Layer*> layers_ ;
   } ;
 
   CaffeNetView *create( std::string prototxt ) {
     return new CaffeNetViewImpl( prototxt ) ;
-  }
+  } 
 
-  //typedef caffe::SolverRegistry<float> reg;  // need this to support solvers
+
+  Layer::Layer( std::string name ) : name_(name) { }
+  std::string Layer::name() { return name_ ; }
+  
 }
