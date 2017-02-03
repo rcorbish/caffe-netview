@@ -74,7 +74,8 @@ function Redraw() {
 
 	const charge = document.getElementById("charge").value ;
 	const tension = document.getElementById("tension").value ;
-	xhr.open("POST", "/upload?charge="+charge+"&tension="+tension );
+	xhr.open("POST", "upload?charge="+charge+"&tension="+tension );
+	xhr.setRequestHeader("Content-Type", "application/x-prototext");
 	xhr.setRequestHeader( "accept", "text/html" ) ;
 	xhr.overrideMimeType('application/javascript; charset=utf-8');
 	xhr.send( protoText ) ;

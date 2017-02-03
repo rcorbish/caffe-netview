@@ -1,10 +1,12 @@
 
 # caffe-netview  - displays caffe prototxt files in a browser
 
-## Ststus 
+## Status 
 
 Work in progress, not ready for use yet.
 Building on linux only at present
+
+Current dev status: https://rcorbish.ydns.eu/caffe-netview/
 
 ## Building
 
