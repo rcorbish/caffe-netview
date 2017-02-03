@@ -40,8 +40,7 @@ class WrappedCaffeNetView : public node::ObjectWrap
 
 
       // define how we access the attributes
-      tpl->InstanceTemplate()->SetAccessor(String::NewFromUtf8(isolate, "name"), GetCoeff );
-      tpl->InstanceTemplate()->SetAccessor(String::NewFromUtf8(isolate, "length"), GetCoeff );
+      tpl->InstanceTemplate()->SetAccessor(String::NewFromUtf8(isolate, "buffer"), GetCoeff );
 
       constructor.Reset(isolate, tpl->GetFunction());
       exports->Set(String::NewFromUtf8(isolate, "CaffeNetView"), tpl->GetFunction());
@@ -52,7 +51,6 @@ class WrappedCaffeNetView : public node::ObjectWrap
 	The C++ constructor.
    */
     explicit WrappedCaffeNetView( std::string prototxt ) {
-        name_ = NULL ;
         netview_ = caffenetview::create( prototxt ) ;
     }
     
@@ -60,7 +58,6 @@ class WrappedCaffeNetView : public node::ObjectWrap
 	The destructor needs to free anything
     */
     ~WrappedCaffeNetView() { 
-    	delete name_ ;
     	delete netview_ ;
     }
 
@@ -91,7 +88,6 @@ class WrappedCaffeNetView : public node::ObjectWrap
 /*-----------------------------------------------
  ATTRIBUTES    
 -----------------------------------------------*/
-    std::string *name_  ; 	/*< Name of this net */
 	caffenetview::CaffeNetView *netview_ ;  /*< implementing protobuf code */
 	
 /*-----------------------------------------------
@@ -117,13 +113,10 @@ void WrappedCaffeNetView::ToString( const v8::FunctionCallbackInfo<v8::Value>& a
   Isolate* isolate = args.GetIsolate();
 //  Local<Context> context = isolate->GetCurrentContext() ;
 
-  WrappedCaffeNetView* self = ObjectWrap::Unwrap<WrappedCaffeNetView>(args.Holder());
+  //WrappedCaffeNetView* self = ObjectWrap::Unwrap<WrappedCaffeNetView>(args.Holder());
   
-  if( self->name_ != NULL  ) {
-  	args.GetReturnValue().Set( v8::String::NewFromUtf8( isolate,  self->name_->c_str() ) ) ;
-  } else {  
-  	args.GetReturnValue().Set( v8::String::NewFromUtf8( isolate,  "** Empty **" ) ) ;
-  }
+  args.GetReturnValue().Set( v8::String::NewFromUtf8( isolate,  "** Empty **" ) ) ;
+  
 }
 
 /** internally calls ToString. @see ToString */
@@ -147,10 +140,10 @@ void WrappedCaffeNetView::GetCoeff(Local<String> property, const PropertyCallbac
   v8::String::Utf8Value s(property);
   std::string str(*s);
 
-  if (str == "name" && obj->name_ != NULL ) {
-    info.GetReturnValue().Set( String::NewFromUtf8( isolate,  obj->name_->c_str() ) ) ;
-  } else if (str == "length" && obj->netview_ != NULL ) {
-    info.GetReturnValue().Set( obj->netview_->size() ) ;
+  if (str == "buffer" && obj->netview_ != NULL ) {
+  	const std::string &raw = obj->netview_->proto_buffer() ;
+  	Local<ArrayBuffer> ab = ArrayBuffer::New( isolate, (void*)raw.data(), raw.size() ) ;
+    info.GetReturnValue().Set( Uint8Array::New( ab, 0, raw.size()  ) ) ;
   }
 
 }

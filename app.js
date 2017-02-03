@@ -21,10 +21,14 @@ app.use(function(req, res, next) {
 });
 
 
-app.post( "/upload", function(req,res) { 
-	res.charset = 'utf8';
-	res.contentType = "application/javascript" ;
-    res.json( layout( req.rawBody ) ) ;
+app.post( "/upload", function(req,res,next) { 
+	layout( req.rawBody )
+	.then( function( obj ) {
+	    res.json( obj ) ;		
+	})
+	.catch( function( err ) {
+		next( err ) ;
+	}) ;	
 }) ;
 
 app.use('/css', express.static('css'));

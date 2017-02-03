@@ -63,7 +63,7 @@ function init() {
 	}	
 }
 
-function DrawView( dat ) {
+function DrawView( netobj ) {
 	const netView = document.getElementById( "net-view" ) ;
 		
 	var camera, scene, renderer;
@@ -79,15 +79,79 @@ function DrawView( dat ) {
 	light.position.z = 100 ;
 	scene.add( light );
 		
-				
-	var geometry = new THREE.TorusKnotBufferGeometry( 30, 5, 100, 50 );
-	var material = new THREE.MeshStandardMaterial( { color: 0x0f30f8, metalness: 0.3, roughness: 0.2, wireframe: false } );
+	var arrowIn = new THREE.Shape();
+	arrowIn.moveTo( 5, 0 );
+	arrowIn.lineTo( 0, 5 );
+	arrowIn.lineTo( -5, 5 );
+	arrowIn.lineTo( -5, -5 );
+	arrowIn.lineTo( 0, -5 );
+	arrowIn.lineTo( 5, 0 );
 
-	var thing  = new THREE.Mesh( geometry, material ) ;
-	thing.position.set( 0, 0, 0 ) ;
-	group.add( thing ) ;
-	things.push( thing ) ;
-				
+	var arrowOut = new THREE.Shape();
+	arrowOut.moveTo( 0, 0  );
+	arrowOut.lineTo( -5, 5 );
+	arrowOut.lineTo( 5, 5  );
+	arrowOut.lineTo( 5, -5 );
+	arrowOut.lineTo( -5, -5 );
+	arrowOut.lineTo( 0, 0  );
+ 				
+ 	const extrudeSettings = {
+			steps: 1,
+			amount: 10,
+			bevelEnabled: false
+	};
+	var defaultGeometry = new THREE.BoxBufferGeometry( 10, 10, 10 );
+	var blobGeometry = new THREE.SphereBufferGeometry( 5, 30, 30 );	
+	var dataGeometry = new THREE.CylinderBufferGeometry( 5, 5, 10, 20 );	
+	var inputGeometry = new THREE.ExtrudeGeometry( arrowIn, extrudeSettings );
+	var outputGeometry = new THREE.ExtrudeGeometry( arrowOut, extrudeSettings );
+	
+	var convGeometry = new THREE.TorusKnotBufferGeometry( 5, 2, 100, 100 );
+	var innerProductGeometry = new THREE.BoxBufferGeometry( 10, 10, 10 );
+	var accuracyGeometry = new THREE.TetrahedronBufferGeometry( 10 );
+	var softmaxGeometry = new THREE.TorusBufferGeometry( 5, 2, 15, 32 );
+	var reluGeometry = new THREE.IcosahedronBufferGeometry( 5 );
+	
+	
+	var blueMaterial = new THREE.MeshStandardMaterial( { color: 0x0f30f8, metalness: 0.3, roughness: 0.2, wireframe: false } );
+	var whiteMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, metalness: 1.0, roughness: 0.2, wireframe: false } );
+
+	var type, geometry, z ;
+	for( var i=0 ; i<netobj.nodes.length ; i++ ) {
+		z = 0 ;
+		type = netobj.nodes[i].type.toLowerCase() ;
+		geometry = defaultGeometry ;
+		if( type === 'blob' ) 		{ geometry = blobGeometry ; }
+		if( type === 'data' ) 		{ geometry = dataGeometry ; }
+		if( type === 'input' ) 		{ geometry = inputGeometry ; z = -5 ; }
+		if( type === 'accuracy' ) 	{ geometry = outputGeometry ; z = -5 ; }
+		if( type.startsWith( 'softmax' ) ) 	{ geometry = outputGeometry ; z = -5 ; }
+		if( type === 'loss' ) 		{ geometry = outputGeometry ; z = -5 ; }
+	
+		var thing  = new THREE.Mesh( geometry, blueMaterial ) ;
+		thing.name = netobj.nodes[i].name ;
+		thing.position.set( netobj.nodes[i].x, netobj.nodes[i].y, z ) ;
+		group.add( thing ) ;
+		things.push( thing ) ;
+	}
+
+	for( var i=0 ; i<netobj.links.length ; i++ ) {
+		// turn the link IDs into actual things we are drawing
+		// each thing is given the name of its caffe layer
+		src = things.find( function(e) { return e.name === netobj.links[i].source.name ; } ) ;
+		tgt = things.find( function(e) { return e.name === netobj.links[i].target.name ; } ) ;
+		
+		// create a line - in 3js this is how we do it ...
+		var curve = new THREE.LineCurve3( src.position, tgt.position ) ;	
+		var path = new THREE.Path( curve.getPoints() );
+		var geometry = path.createPointsGeometry();
+	
+		var thing = new THREE.Line( geometry, whiteMaterial );
+
+		group.add( thing ) ;
+		things.push( thing ) ;
+	}		
+			
 	scene.add( group );
 				
 	renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -100,31 +164,22 @@ function DrawView( dat ) {
 	controls = new THREE.OrbitControls( camera, renderer.domElement );
 	controls.target.set( 0, 10, 10 );
 	controls.update();
+	controls.addEventListener('change', render ,false);
+	
 	window.addEventListener( 'resize', onWindowResize, false );
 
 	function onWindowResize() {
 		camera.aspect = netView.clientWidth / netView.clientHeight;
 		camera.updateProjectionMatrix();
 		renderer.setSize( netView.clientWidth, netView.clientHeight );
-	}
-	
-	function animate() {
-		requestAnimationFrame( animate );
-		render();
+		render() ;
 	}
 
 	function render() {
-		var time = performance.now() * 0.01;
-	    for( var i=0 ; i<things.length ; i++ ) {
-	      things[i].rotation.x = 0.05 * time ;
-	    }
-		var time = performance.now() * 0.01;
-		group.rotation.y = time * 0.4;
 		renderer.render( scene, camera );
 	}
 	
-	animate();
-	
+	render();
 }
 
 

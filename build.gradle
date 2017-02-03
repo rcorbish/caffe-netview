@@ -57,6 +57,7 @@ task gypconfig( type: Exec ) {
 	outputs.file 'build/config.gypi'
 	
 	description 'Creates node-gyp config before node-gyp build stage.'
+	
 	executable 'node-gyp.sh'
     args 'configure'
 }
@@ -69,8 +70,26 @@ task gypbuild( dependsOn: 'gypconfig', type: Exec) {
 	outputs.file 'build/Release/caffe-netview.node' 
 
 	description 'Builds the npm package'
+	
 	executable 'node-gyp.sh'
     args 'build'
 }
 
-build.finalizedBy  gypbuild 
+
+task protobufdescriptor( type: Exec ) {
+	inputs.file '/home/richard/caffe/src/caffe/proto/caffe.proto'
+	outputs.file 'caffe-protocol.protodesc'
+
+	description 'Compiles the caffe protobuf to a descriptor (used by node-proto package)'
+	 
+	executable 'protoc'
+	def arglist = protobufdescriptor.inputs.files 
+	arglist += '-o' 
+	arglist += protobufdescriptor.outputs.files 
+	arglist += '--proto_path'
+	arglist += '/home/richard/caffe/src/caffe/proto/'
+    args arglist	
+}
+
+build.finalizedBy  gypbuild
+build.finalizedBy  protobufdescriptor 

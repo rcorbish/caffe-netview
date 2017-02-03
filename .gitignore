@@ -5,3 +5,5 @@ build
 gradle
 gradlew
 node_modules
+*.protodesc
+
