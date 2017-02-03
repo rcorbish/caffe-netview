@@ -9,7 +9,7 @@ const protobufDesc = fs.readFileSync("caffe-protocol.protodesc" ) ;
 const protobufParser = new pb( protobufDesc ) ;
 
 
-module.exports = function( text ) {
+module.exports = function( text, charge, tension ) {
 	var nv = new cnv.CaffeNetView( text ) ;		// external C++ to turn prototxt to binary 
 	var b = new Buffer( nv.buffer ) ;			// npm lib to read protobuf binary
 	
@@ -24,7 +24,7 @@ module.exports = function( text ) {
 		} ) ;
 	})
 	.then( function( netobj ){
-		return layout( netobj ) ;
+		return layout( netobj, charge, tension ) ;
 	}) ;	
 	
 	return rc ;		// return the promise once we have parsed the text
@@ -32,8 +32,8 @@ module.exports = function( text ) {
 
 
 
-function layout( netobj ) {
-
+function layout( netobj, charge, tension ) {
+		
 	return new Promise( function( resolve, reject ) {
 
 		const rc = {} ;
@@ -91,9 +91,10 @@ function layout( netobj ) {
 		}
 		 
 		const simulation = d3.forceSimulation()
-			.force( "link", d3.forceLink().id( function(d) { return d.name ; } ).strength(function(d) { return d.tension || 1.5 ; }) )
-			.force( "charge", d3.forceManyBody().strength( -50 ) )
+			.force( "link", d3.forceLink().id( function(d) { return d.name ; } ).strength(function(d) { return d.tension || (tension||1.5) ; }) )
+			.force( "charge", d3.forceManyBody().strength( -(charge||30) ) )
 			.force( "center", d3.forceCenter(0, 0) ) 
+			.force( "collide", d3.forceCollide(10) ) 
 			.force( "x", d3.forceX( function(d) { return d.xPreferred || 0 ; } ).strength( 0.8 ) )
 			.stop();		// static layout
 				

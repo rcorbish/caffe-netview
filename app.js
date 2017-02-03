@@ -21,8 +21,8 @@ app.use(function(req, res, next) {
 });
 
 
-app.post( "/upload", function(req,res,next) { 
-	layout( req.rawBody )
+app.post( "/upload", function(req,res,next) {
+	layout( req.rawBody, req.query.charge, req.query.tension )
 	.then( function( obj ) {
 	    res.json( obj ) ;		
 	})

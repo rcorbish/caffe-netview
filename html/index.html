@@ -9,7 +9,14 @@
 </head>
 <body>
 
-<div id='proto-drop-site' class='drop-site'>drop a prototxt file or URL here</div>
+<div class='menu'>
+	<div id='proto-drop-site' class='drop-site'>drop a prototxt file or URL here</div>
+	<div class='controls'>	
+		<div class='slider-label'>link tension</div><input type='range' id='tension' max=2 step=0.1 ></input>
+		<br>
+		<div class='slider-label'>node repulsion</div><input type='range' id='charge' min=5 max=100 step=5 ></input>
+	</div>
+</div>
 <div id='net-view' class='net-view'></div>
 
 <script>
@@ -39,18 +46,22 @@ function init() {
 		e.target.className = currentClassName ;
 	}
 
-
+	var protoText = null ;
+	
 	function FileDropped(e) {
 		FileDragHover(e);
 	
 		var files = e.dataTransfer.files;
 		if( files.length > 0 ) {
 			const fileReader = new FileReader();
-			xhr.open("POST", "/upload");
+			const charge = document.getElementById("charge").value ;
+			const tension = document.getElementById("tension").value ;
+			xhr.open("POST", "/upload?charge="+charge+"&tension="+tension );
 			xhr.setRequestHeader( "accept", "text/html" ) ;
 			xhr.overrideMimeType('application/javascript; charset=utf-8');
 			fileReader.addEventListener("loadend", function(evt){
-				xhr.send(evt.target.result);}
+				protoText = evt.target.result ;
+				xhr.send( protoText ); }
 				, false);
 			fileReader.readAsBinaryString( files[0] );
 			
@@ -65,13 +76,17 @@ function init() {
 
 function DrawView( netobj ) {
 	const netView = document.getElementById( "net-view" ) ;
+
+	while (netView.hasChildNodes()) {
+    	netView.removeChild(netView.lastChild);
+	}
 		
 	var camera, scene, renderer;
 	var group = new THREE.Group() ;
 	var things = [] ;
 	
 	camera = new THREE.PerspectiveCamera( 45, netView.clientWidth / netView.clientHeight, 1, 1000 );
-	camera.position.set( 0, 10, 180 );
+	camera.position.set( 0, 0, 300 );
 	scene = new THREE.Scene();
 	scene.add( new THREE.AmbientLight( 0xffffff, 0.35 ) ) ;
 	
