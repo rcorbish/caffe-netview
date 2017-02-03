@@ -20,22 +20,28 @@
 <div id='net-view' class='net-view'></div>
 
 <script>
+var protoText = null ;
+
 function init() {
+
 
 	const xhr = new XMLHttpRequest();
 	if( !xhr.upload ) {
 		alert( "This browser is not supported." ) ;
 		return ;
 	}
-	
+
+	const sliders = document.querySelectorAll( "input[type='range']" ) ;
+	for( var i=0 ; i<sliders.length ; i++ ) {
+		sliders[i].addEventListener("change", Redraw, false ) ;
+	}
+		
 	const dropSite = document.querySelector( ".drop-site" ) ;
 	
 	// file drop
 	dropSite.addEventListener("dragover", FileDragHover, false);
 	dropSite.addEventListener("dragleave", FileDragHover, false);
 	dropSite.addEventListener("drop", FileDropped, false);
-
-
 
 	function FileDragHover(e) {
 		e.stopPropagation() ;
@@ -46,7 +52,6 @@ function init() {
 		e.target.className = currentClassName ;
 	}
 
-	var protoText = null ;
 	
 	function FileDropped(e) {
 		FileDragHover(e);
@@ -54,24 +59,30 @@ function init() {
 		var files = e.dataTransfer.files;
 		if( files.length > 0 ) {
 			const fileReader = new FileReader();
-			const charge = document.getElementById("charge").value ;
-			const tension = document.getElementById("tension").value ;
-			xhr.open("POST", "/upload?charge="+charge+"&tension="+tension );
-			xhr.setRequestHeader( "accept", "text/html" ) ;
-			xhr.overrideMimeType('application/javascript; charset=utf-8');
 			fileReader.addEventListener("loadend", function(evt){
-				protoText = evt.target.result ;
-				xhr.send( protoText ); }
+					protoText = evt.target.result ;
+					Redraw(); 
+				}
 				, false);
-			fileReader.readAsBinaryString( files[0] );
-			
-			xhr.onreadystatechange = function() {
-    			if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
-    				DrawView( JSON.parse( xhr.responseText ) ) ;
-			    }
-			} ;
+			fileReader.readAsBinaryString( files[0] );			
 		}
 	}	
+}
+
+function Redraw() {
+	const xhr = new XMLHttpRequest();
+
+	const charge = document.getElementById("charge").value ;
+	const tension = document.getElementById("tension").value ;
+	xhr.open("POST", "/upload?charge="+charge+"&tension="+tension );
+	xhr.setRequestHeader( "accept", "text/html" ) ;
+	xhr.overrideMimeType('application/javascript; charset=utf-8');
+	xhr.send( protoText ) ;
+	xhr.onreadystatechange = function() {
+		if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+			DrawView( JSON.parse( xhr.responseText ) ) ;
+	    }
+	} ;
 }
 
 function DrawView( netobj ) {
