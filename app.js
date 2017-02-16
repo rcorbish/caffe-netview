@@ -1,5 +1,8 @@
 
 const fs 		= require('fs') ;
+const http 		= require('http') ;
+const https 	= require('https') ;
+const url		= require('url') ;
 const express   = require('express') ;
 const layout	= require('./layout.js') ;
 
@@ -22,7 +25,32 @@ app.use(function(req, res, next) {
 
 
 app.post( "/upload", function(req,res,next) {
-	layout( req.rawBody, req.query.charge, req.query.tension )
+
+	new Promise( function( fulfill, reject ) {
+		if( req.headers[ 'content-type' ] === 'text/uri-list' ) {
+			protoText = "" ;
+			const options = url.parse( req.rawBody ) ;
+			const handler = options.protocol === 'http' ? http : https ;
+			handler.request( options, function(res) {
+			  res.on('data', function (chunk) {
+			    protoText += chunk ;
+			  })
+			  .on('end', function() {
+				fulfill( protoText ) ;  
+			  })
+			})
+			.on( 'error', function(err) {
+				reject( err ) ;
+			}) 
+			.end();
+		} else {
+			fulfill( req.rawBody ) ;
+		}		
+	})	
+	.then( function( protoText ) {
+		console.log( "Laying out", protoText.length, "text bytes" ) ;
+		return layout( protoText, req.query.charge, req.query.tension, req.query.radius ) ;
+	})
 	.then( function( obj ) {
 	    res.json( obj ) ;		
 	})

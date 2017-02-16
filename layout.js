@@ -9,7 +9,7 @@ const protobufDesc = fs.readFileSync("caffe-protocol.protodesc" ) ;
 const protobufParser = new pb( protobufDesc ) ;
 
 
-module.exports = function( text, charge, tension ) {
+module.exports = function( text, charge, tension, radius ) {
 	var nv = new cnv.CaffeNetView( text ) ;		// external C++ to turn prototxt to binary 
 	var b = new Buffer( nv.buffer ) ;			// npm lib to read protobuf binary
 	
@@ -24,7 +24,7 @@ module.exports = function( text, charge, tension ) {
 		} ) ;
 	})
 	.then( function( netobj ){
-		return layout( netobj, charge, tension ) ;
+		return layout( netobj, charge, tension, radius ) ;
 	}) ;	
 	
 	return rc ;		// return the promise once we have parsed the text
@@ -32,28 +32,35 @@ module.exports = function( text, charge, tension ) {
 
 
 
-function layout( netobj, charge, tension ) {
+function layout( netobj, charge, tension, radius ) {
 		
 	return new Promise( function( resolve, reject ) {
 
 		const rc = {} ;
 		rc.nodes = [] ;
 		
-		for( var i=0 ; i<netobj.layer.length ; i++ ) {
-			for( var t=0 ; t<netobj.layer[i].top.length ; t++ ) {					
-				if( !rc.nodes.find( function(e){ return e.name==='blob-'+netobj.layer[i].top[t] ; } ) ) {   						
-					rc.nodes.push( { 'type':'blob', "name" : 'blob-' + netobj.layer[i].top[t], 'xPreferred' : (i-netobj.layer.length/2) * 10 } ) ;
+		// layers can be new or old name :(
+		const layers = ( netobj.layer.length === 0 ) ? netobj.layers : netobj.layer ;		
+		
+		// find all the data blobs - these will be nodes
+		for( var i=0 ; i<layers.length ; i++ ) {
+			for( var t=0 ; t<layers[i].top.length ; t++ ) {					
+				if( !rc.nodes.find( function(e){ return e.name==='blob-'+layers[i].top[t] ; } ) ) {   						
+					rc.nodes.push( { 'type':'blob', "name" : 'blob-' + layers[i].top[t], 'xPreferred' : (i-layers.length/2) * 10 } ) ;
 				}
 			}
-			for( var b=0 ; b<netobj.layer[i].bottom.length ; b++ ) {					
-				if( !rc.nodes.find( function(e){ return e.name==='blob-'+netobj.layer[i].bottom[b] ; } ) ) {   						
-					rc.nodes.push( { 'type':'blob', "name" : 'blob-' + netobj.layer[i].bottom[b], 'xPreferred' : (i-netobj.layer.length/2) * 10} ) ;
+			for( var b=0 ; b<layers[i].bottom.length ; b++ ) {					
+				if( !rc.nodes.find( function(e){ return e.name==='blob-'+layers[i].bottom[b] ; } ) ) {   						
+					rc.nodes.push( { 'type':'blob', "name" : 'blob-' + layers[i].bottom[b], 'xPreferred' : (i-layers.length/2) * 10} ) ;
 				}
 			}
 		}
 
-		for( var i=0 ; i<netobj.layer.length ; i++ ) {
-			let node = { 'type' : netobj.layer[i].type.toLowerCase(), "name" : netobj.layer[i].name, 'xPreferred' : (i-netobj.layer.length/2) * 10 } ;
+		// Now add each actual layer 
+		for( var i=0 ; i<layers.length ; i++ ) {
+			let node = { 'type' : layers[i].type.toLowerCase(), "name" : layers[i].name, 'xPreferred' : (i-layers.length/2) * 10 } ;
+			
+			// input & output nodes should try to be on left & right of the diagram
 			if( node.type==='input' ) {
 				node.xPreferred = -200 ;
 			}
@@ -71,22 +78,30 @@ function layout( netobj, charge, tension ) {
 		// prepare a force layout simulation for layers ( name is unique )		
 
 		rc.links = [] ;
-		
-		for( var i=0 ; i<netobj.layer.length ; i++ ) {
-			let layer = netobj.layer[i] ;
+		// Now create links between items - note links always exist between a layer and a data item
+		// some special layers have input blob == output blob 
+		for( var i=0 ; i<layers.length ; i++ ) {
+			let layer = layers[i] ;
 			let bottoms = layer.bottom ;
 			let tops = layer.top ;
 			
-			for( var b=0 ; b<bottoms.length ; b++ ) {
-				let l ={ "source" : 'blob-'+bottoms[b], "target": layer.name } ;
-				if( bottoms[b].name === 'blob-data ' ) l.tension = 0.1 ;
-				rc.links.push( l ) ;
-			}
-			
-			for( var t=0 ; t<tops.length ; t++ ) {
-				let l = { "source" : layer.name, "target": 'blob-'+tops[t] } ;
-				if( tops[t].name === 'blob-data ' ) l.tension = 0.1 ;
-				rc.links.push( l ) ;
+			// is a special layer that uses previous layer's blob ( e.g. relu )
+			if( bottoms.length === 1 && tops.length ===1 && bottoms[0] === tops[0] ) {
+				let blob = rc.nodes.find( function(e){ return e.name==='blob-'+bottoms[0] ; } ) ; // find the blob
+				blob.type = layer.type ;
+				rc.nodes = rc.nodes.filter( item => item.name !== layer.name ) ;
+			} else {
+				for( var b=0 ; b<bottoms.length ; b++ ) {
+					let l ={ "source" : 'blob-'+bottoms[b], "target": layer.name } ;
+					if( bottoms[b].name === 'blob-data ' ) l.tension = 0.1 ;
+					rc.links.push( l ) ;
+				}
+				
+				for( var t=0 ; t<tops.length ; t++ ) {
+					let l = { "source" : layer.name, "target": 'blob-'+tops[t] } ;
+					if( tops[t].name === 'blob-data ' ) l.tension = 0.1 ;
+					rc.links.push( l ) ;
+				}
 			}
 		}
 		 
@@ -94,7 +109,7 @@ function layout( netobj, charge, tension ) {
 			.force( "link", d3.forceLink().id( function(d) { return d.name ; } ).strength(function(d) { return d.tension || (tension||1.5) ; }) )
 			.force( "charge", d3.forceManyBody().strength( -(charge||30) ) )
 			.force( "center", d3.forceCenter(0, 0) ) 
-			.force( "collide", d3.forceCollide(10) ) 
+			.force( "collide", d3.forceCollide(radius||20) ) 
 			.force( "x", d3.forceX( function(d) { return d.xPreferred || 0 ; } ).strength( 0.8 ) )
 			.stop();		// static layout
 				

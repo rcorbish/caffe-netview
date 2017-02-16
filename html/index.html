@@ -15,12 +15,15 @@
 		<div class='slider-label'>link tension</div><input type='range' id='tension' max=2 step=0.1 ></input>
 		<br>
 		<div class='slider-label'>node repulsion</div><input type='range' id='charge' min=5 max=100 step=5 ></input>
+		<br>
+		<div class='slider-label'>node radius</div><input type='range' id='radius' min=2 max=50 step=2 ></input>
 	</div>
 </div>
 <div id='net-view' class='net-view'></div>
 
 <script>
 var protoText = null ;
+var protoUrl = null ;
 
 function init() {
 
@@ -61,10 +64,15 @@ function init() {
 			const fileReader = new FileReader();
 			fileReader.addEventListener("loadend", function(evt){
 					protoText = evt.target.result ;
+					protoUrl = null ;
 					Redraw(); 
 				}
 				, false);
 			fileReader.readAsBinaryString( files[0] );			
+		} else {		// not a file - possibly a URL
+			protoUrl = e.dataTransfer.getData( 'text/plain' ) ;
+			protoText = null ;
+			Redraw(); 
 		}
 	}	
 }
@@ -74,16 +82,24 @@ function Redraw() {
 
 	const charge = document.getElementById("charge").value ;
 	const tension = document.getElementById("tension").value ;
-	xhr.open("POST", "upload?charge="+charge+"&tension="+tension );
-	xhr.setRequestHeader("Content-Type", "application/x-prototext");
+	const radius = document.getElementById("radius").value ;
+	xhr.open("POST", "upload?charge="+charge+"&tension="+tension+"&radius="+radius );
 	xhr.setRequestHeader( "accept", "text/html" ) ;
 	xhr.overrideMimeType('application/javascript; charset=utf-8');
-	xhr.send( protoText ) ;
 	xhr.onreadystatechange = function() {
-		if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+		if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
 			DrawView( JSON.parse( xhr.responseText ) ) ;
 	    }
 	} ;
+	
+	if( protoText ) {
+		xhr.setRequestHeader("Content-Type", "application/x-prototext");
+		xhr.send( protoText ) ;
+	} 
+	if( protoUrl ) {
+		xhr.setRequestHeader("Content-Type", "text/uri-list");
+		xhr.send( protoUrl ) ;
+	}	
 }
 
 function DrawView( netobj ) {
@@ -128,7 +144,7 @@ function DrawView( netobj ) {
 			bevelEnabled: false
 	};
 	var defaultGeometry = new THREE.BoxBufferGeometry( 10, 10, 10 );
-	var blobGeometry = new THREE.SphereBufferGeometry( 5, 30, 30 );	
+	var blobGeometry = new THREE.OctahedronBufferGeometry( 5 );	
 	var dataGeometry = new THREE.CylinderBufferGeometry( 5, 5, 10, 20 );	
 	var inputGeometry = new THREE.ExtrudeGeometry( arrowIn, extrudeSettings );
 	var outputGeometry = new THREE.ExtrudeGeometry( arrowOut, extrudeSettings );
@@ -141,6 +157,11 @@ function DrawView( netobj ) {
 	
 	
 	var blueMaterial = new THREE.MeshStandardMaterial( { color: 0x0f30f8, metalness: 0.3, roughness: 0.2, wireframe: false } );
+	var greenMaterial = new THREE.MeshStandardMaterial( { color: 0x0fc838, metalness: 0.0, roughness: 0.7, wireframe: false } );
+	var orangeMaterial = new THREE.MeshStandardMaterial( { color: 0xd0c826, metalness: 0.1, roughness: 1.0, wireframe: false } );
+	var pinkMaterial = new THREE.MeshStandardMaterial( { color: 0xf070c0, metalness: 0.1, roughness: 1.0, wireframe: false } );
+	var silverMaterial = new THREE.MeshStandardMaterial( { color: 0x8090a0, metalness: 0.6, roughness: 0.1, wireframe: false } );
+	
 	var whiteMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, metalness: 1.0, roughness: 0.2, wireframe: false } );
 
 	var type, geometry, z ;
@@ -148,14 +169,16 @@ function DrawView( netobj ) {
 		z = 0 ;
 		type = netobj.nodes[i].type.toLowerCase() ;
 		geometry = defaultGeometry ;
-		if( type === 'blob' ) 		{ geometry = blobGeometry ; }
+		material = blueMaterial ;
+		
+		if( type === 'blob' ) 		{ geometry = blobGeometry ; material = ( netobj.nodes[i].type ? silverMaterial : greenMaterial ) ; }
 		if( type === 'data' ) 		{ geometry = dataGeometry ; }
 		if( type === 'input' ) 		{ geometry = inputGeometry ; z = -5 ; }
-		if( type === 'accuracy' ) 	{ geometry = outputGeometry ; z = -5 ; }
-		if( type.startsWith( 'softmax' ) ) 	{ geometry = outputGeometry ; z = -5 ; }
-		if( type === 'loss' ) 		{ geometry = outputGeometry ; z = -5 ; }
+		if( type === 'accuracy' ) 	{ geometry = outputGeometry ; z = -5 ; ; material=pinkMaterial ; }
+		if( type.startsWith( 'softmax' ) ) 	{ geometry = outputGeometry ; z = -5 ; material=orangeMaterial ; }
+		if( type === 'loss' ) 		{ geometry = outputGeometry ; z = -5 ; ; material=pinkMaterial ;}
 	
-		var thing  = new THREE.Mesh( geometry, blueMaterial ) ;
+		var thing  = new THREE.Mesh( geometry, material ) ;
 		thing.name = netobj.nodes[i].name ;
 		thing.position.set( netobj.nodes[i].x, netobj.nodes[i].y, z ) ;
 		group.add( thing ) ;
