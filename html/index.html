@@ -51,7 +51,7 @@ function init() {
 	function FileDragHover(e) {
 		e.stopPropagation() ;
 		e.preventDefault() ;
-		var currentClassName = e.target.className ;
+		var currentClassName = e.target.className || "" ;
 		currentClassName = currentClassName.replace( /[\s]*drop-hover[\s]*/, " " ) ;
 		if( e.type === "dragover" ) currentClassName += " drop-hover" ;
 		e.target.className = currentClassName ;
@@ -256,16 +256,14 @@ function drawView( netobj ) {
 	var learnGeometry = new THREE.ConeBufferGeometry( 15, 30, 130 );
 	
 	var convGroup = new THREE.Group() ;
-	for( let x=0 ; x<2 ; x++ ) {
-		for( let y=-1 ; y<2 ; y++ ) {
-			for( let z=-1 ; z<2 ; z++ ) {
-				let box = new THREE.BoxBufferGeometry( 8, 8, 8 ) ;
-				let mesh = new THREE.Mesh( box, greenMaterial ) ;
-				mesh.position.set( 10 * x, 10 * y, 10 * z ) ;
-				convGroup.add( mesh ) ;
-			}
-		}
+	for( let x=-10 ; x<15 ; x+=5 ) {
+		let box = new THREE.BoxBufferGeometry( 3, 30, 30 ) ;
+		let mesh = new THREE.Mesh( box, greenMaterial ) ;
+		mesh.position.set( x, 0, 0 ) ;
+		convGroup.add( mesh ) ;
 	}
+	
+	
 	let box = new THREE.BoxBufferGeometry( 8, 30, 30 ) ;
 	let mesh = new THREE.Mesh( box, greenMaterial ) ;
 	mesh.position.set( -10, 0, 0 ) ;
