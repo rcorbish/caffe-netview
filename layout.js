@@ -105,7 +105,7 @@ function layout( netobj, charge, tension, radius, includedStages ) {
 				}
 			}
 		}
-		 
+		/* 
 		const simulation = d3.forceSimulation()
 			.force( "link", d3.forceLink()
 					.id( function(d) { return d.name ; } )
@@ -115,7 +115,7 @@ function layout( netobj, charge, tension, radius, includedStages ) {
 			.force( "charge", d3.forceManyBody()
 					.strength( -(charge||30) ) 
 				)
-			//.force( "center", d3.forceCenter(0, 0) ) 
+			.force( "center", d3.forceCenter(0, 0) ) 
 			.force( "collide", d3.forceCollide(radius||20) ) 
 			.force( "x", d3.forceX( function(d) { return d.xPreferred || 0 ; } ).strength( function(d) { return d.xPreferred ? 0.5 : 0.0 ; } ) )
 			.force( "y", d3.forceY( function(d) { return 0 ; } ).strength( 0.3 ) )
@@ -128,7 +128,7 @@ function layout( netobj, charge, tension, radius, includedStages ) {
 	    for( let i=0 ; i<600 ; i++ ) {
 	        simulation.tick();
 	    }
-	    
+	    */
 	    resolve( rc ) ;
 	}) ;
 }
