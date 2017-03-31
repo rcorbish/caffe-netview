@@ -8,6 +8,45 @@ html {
 }
 
 
+.container {
+    position: absolute ;
+    top: 10px ;
+    right: 10px ;
+    padding: 5px ;
+    display: inline-block;
+    cursor: pointer;
+    z-index: 100 ;
+}
+
+.bar1, .bar2, .bar3 {
+    width: 35px;
+    height: 5px;
+    background-color: #678;
+    margin: 6px 0;
+    transition: 0.4s;
+}
+
+/* Rotate first bar */
+.collapsed .bar1 {
+    -webkit-transform: rotate(-45deg) translate(-9px, 6px) ;
+    transform: rotate(-45deg) translate(-9px, 6px) ;
+}
+
+/* Fade out the second bar */
+.collapsed .bar2 {
+    opacity: 0;
+}
+
+/* Rotate last bar */
+.collapsed .bar3 {
+    -webkit-transform: rotate(45deg) translate(-8px, -8px) ;
+    transform: rotate(45deg) translate(-8px, -8px) ;
+}
+
+.collapsed {
+    height: 0  !important ;
+    padding: 0  !important ;
+}
 
 .network line {
   stroke: #999;
@@ -28,12 +67,21 @@ html {
 	bottom: 0 ;
 	left: 0 ;
 	right: 0 ;
-	top: 150px ;
+	top: 0 ;
 	background-color: #1f0c45 ;	
 }
 
 .menu {
-	position: relative ;
+	position: absolute ;
+    top: 0 ;
+    left: 0 ;
+    right: 0 ;
+    padding: 10px ;
+    transition: 0.4s;
+    height: 150px ;
+    overflow: hidden ;
+    background-color: #201864 ;
+    z-index: 50 ;
 }
 
 .drop-site {
@@ -61,8 +109,8 @@ html {
 
 .stages {
 	position: absolute ;
-	top: 0 ;
-	right: 0 ;
+	top: 15px ;
+	right: 100px ;
 }
 
 .slider-label {

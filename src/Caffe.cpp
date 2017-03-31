@@ -35,8 +35,8 @@ class WrappedCaffeNetView : public node::ObjectWrap
       tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
       // Prototype - methods. These can be called from javascript
-      NODE_SET_PROTOTYPE_METHOD(tpl, "toString", ToString);
-      NODE_SET_PROTOTYPE_METHOD(tpl, "inspect", Inspect);
+      //NODE_SET_PROTOTYPE_METHOD(tpl, "toString", ToString);
+      //NODE_SET_PROTOTYPE_METHOD(tpl, "inspect", Inspect);
 
 
       // define how we access the attributes
@@ -94,8 +94,8 @@ class WrappedCaffeNetView : public node::ObjectWrap
  JS METHODS    
 -----------------------------------------------*/
 
-    static void ToString(const FunctionCallbackInfo<Value>& args);
-    static void Inspect(const FunctionCallbackInfo<Value>& args);
+    //static void ToString(const FunctionCallbackInfo<Value>& args);
+    //static void Inspect(const FunctionCallbackInfo<Value>& args);
 
     static void GetCoeff(Local<String> property, const PropertyCallbackInfo<Value>& info);
 
@@ -107,7 +107,7 @@ Persistent<Function> WrappedCaffeNetView::constructor;
 
 /** 
 	returns a string representation of the target 
-*/
+
 void WrappedCaffeNetView::ToString( const v8::FunctionCallbackInfo<v8::Value>& args )
 {
   Isolate* isolate = args.GetIsolate();
@@ -118,12 +118,13 @@ void WrappedCaffeNetView::ToString( const v8::FunctionCallbackInfo<v8::Value>& a
   args.GetReturnValue().Set( v8::String::NewFromUtf8( isolate,  "** Empty **" ) ) ;
   
 }
-
+*/
 /** internally calls ToString. @see ToString */
+/*
 void WrappedCaffeNetView::Inspect( const v8::FunctionCallbackInfo<v8::Value>& args ) {
   ToString( args ) ;
 }
-
+*/
 
 
 
@@ -148,8 +149,6 @@ void WrappedCaffeNetView::GetCoeff(Local<String> property, const PropertyCallbac
 
 }
 
-
- 
 
 /**
 	The module init script - called by nodejs at load time

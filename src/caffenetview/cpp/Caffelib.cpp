@@ -1,8 +1,8 @@
 
 #include <fcntl.h>
 
-#include <gflags/gflags.h>
-#include <glog/logging.h>
+//#include <gflags/gflags.h>
+//#include <glog/logging.h>
 
 
 #include <google/protobuf/text_format.h>

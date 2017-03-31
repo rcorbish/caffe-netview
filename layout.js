@@ -1,15 +1,12 @@
 
-const d3 = require("d3") ;
 const fs = require( "fs" ) ;
 const pb = require("node-protobuf") ;
 const cnv = require( "caffe-netview" ) ;
 
-
 const protobufDesc = fs.readFileSync("caffe-protocol.protodesc" ) ;
 const protobufParser = new pb( protobufDesc ) ;
 
-
-module.exports = function( text, charge, tension, radius, includedStages ) {
+module.exports = function( text, includedStages ) {
 	var nv = new cnv.CaffeNetView( text ) ;		// external C++ to turn prototxt to binary 
 	var b = new Buffer( nv.buffer ) ;			// npm lib to read protobuf binary
 	
@@ -24,7 +21,7 @@ module.exports = function( text, charge, tension, radius, includedStages ) {
 		} ) ;
 	})
 	.then( function( netobj ){
-		return layout( netobj, charge, tension, radius, includedStages ) ;
+		return layout( netobj, includedStages ) ;
 	}) ;	
 	
 	return rc ;		// return the promise once we have parsed the text
@@ -32,7 +29,7 @@ module.exports = function( text, charge, tension, radius, includedStages ) {
 
 
 
-function layout( netobj, charge, tension, radius, includedStages ) {
+function layout( netobj, includedStages ) {
 		
 	return new Promise( function( resolve, reject ) {
 
@@ -61,12 +58,12 @@ function layout( netobj, charge, tension, radius, includedStages ) {
 
 			for( var t=0 ; t<layers[i].top.length ; t++ ) {		
 				if( !rc.nodes.find( function(e){ return e.name==='blob-'+layers[i].top[t] ; } ) ) {   						
-					rc.nodes.push( { 'type':'blob', "name" : 'blob-' + layers[i].top[t], 'xxPreferred' : (i-layers.length/2) * 50 } ) ;
+					rc.nodes.push( { 'type':'blob', "name" : 'blob-' + layers[i].top[t] } ) ;
 				}
 			}
 			for( var b=0 ; b<layers[i].bottom.length ; b++ ) {					
 				if( !rc.nodes.find( function(e){ return e.name==='blob-'+layers[i].bottom[b] ; } ) ) {   						
-					rc.nodes.push( { 'type':'blob', "name" : 'blob-' + layers[i].bottom[b], 'xxPreferred' : (i-layers.length/2) * 50} ) ;
+					rc.nodes.push( { 'type':'blob', "name" : 'blob-' + layers[i].bottom[b] } ) ;
 				}
 			}
 		}
@@ -105,30 +102,6 @@ function layout( netobj, charge, tension, radius, includedStages ) {
 				}
 			}
 		}
-		/* 
-		const simulation = d3.forceSimulation()
-			.force( "link", d3.forceLink()
-					.id( function(d) { return d.name ; } )
-					.strength( function(d) { return d.tension || (tension||1.5) ; }) 
-					.distance( function(d) { return 10 ; } ) 
-				)
-			.force( "charge", d3.forceManyBody()
-					.strength( -(charge||30) ) 
-				)
-			.force( "center", d3.forceCenter(0, 0) ) 
-			.force( "collide", d3.forceCollide(radius||20) ) 
-			.force( "x", d3.forceX( function(d) { return d.xPreferred || 0 ; } ).strength( function(d) { return d.xPreferred ? 0.5 : 0.0 ; } ) )
-			.force( "y", d3.forceY( function(d) { return 0 ; } ).strength( 0.3 ) )
-			.stop();		// static layout
-				
-		simulation.nodes( rc.nodes ) ;
-		simulation.force( "link" ).links( rc.links ) ;
-		
-		
-	    for( let i=0 ; i<600 ; i++ ) {
-	        simulation.tick();
-	    }
-	    */
 	    resolve( rc ) ;
 	}) ;
 }

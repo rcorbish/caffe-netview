@@ -48,8 +48,8 @@ app.post( "/upload", function(req,res,next) {
 		}		
 	})	
 	.then( function( protoText ) {
-		console.log( "Laying out", protoText.length, "text bytes" ) ;
-		return layout( protoText, req.query.charge, req.query.tension, req.query.radius, req.query.stage ) ;
+		//console.log( "Laying out", protoText.length, "text bytes" ) ;
+		return layout( protoText, req.query.stage ) ;
 	})
 	.then( function( obj ) {
 	    res.json( obj ) ;		

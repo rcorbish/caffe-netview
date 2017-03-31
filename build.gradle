@@ -25,7 +25,7 @@ model {
         all {
             cppCompiler.define "CAFFE_VERSION=1.0.0-rc3"
             cppCompiler.define "NDEBUG"
-            cppCompiler.define "USE_CUDNN"
+            cppCompiler.define "CPU_ONLY"
             cppCompiler.define "USE_OPENCV"
             cppCompiler.define "USE_LMDB"
 
@@ -58,7 +58,7 @@ task gypconfig( type: Exec ) {
 	
 	description 'Creates node-gyp config before node-gyp build stage.'
 	
-	executable 'node-gyp.sh'
+	executable 'node-gyp'
     args 'configure'
 }
 
@@ -71,7 +71,7 @@ task gypbuild( dependsOn: 'gypconfig', type: Exec) {
 
 	description 'Builds the npm package'
 	
-	executable 'node-gyp.sh'
+	executable 'node-gyp'
     args 'build'
 }
 
