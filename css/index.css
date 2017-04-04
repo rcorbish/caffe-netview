@@ -111,6 +111,7 @@ html {
 	position: absolute ;
 	top: 15px ;
 	right: 100px ;
+    z-index: 40 ;
 }
 
 .slider-label {

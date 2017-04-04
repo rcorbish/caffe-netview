@@ -127,18 +127,23 @@ function defineStages() {
 	dat = dat.filter( (e,i,a) => a.indexOf(e) === i ) ;
 
 	const stageDiv = d3.select(".stages") ;
-	stageDiv.selectAll( "input[type='checkbox']" ) 
-	.data( dat )
-	.exit()
+
+	const checkBoxes = stageDiv.selectAll( "input[type='checkbox']" ) 
+		.data( dat )
+		.attr( 'name', function(d) { return d ; } )
+		.attr( 'value', function(d) { return d ; } )
+//		.text( function(d) { return d ; } ) 
+		;
+	checkBoxes.exit()
 		.remove()
-	.enter()
+		;
+	checkBoxes.enter()
 		.append( 'input' )
+		.on( 'change', Redraw )
 		.attr( 'type', 'checkbox' )
 		.attr( 'name', function(d) { return d ; } )
-		.text( function(d) { return d ; } )
-		.on( 'change', Redraw )
-	.attr( 'name', function(d) { return d ; } )
-	.text( function(d) { return d ; } )
+		.attr( 'value', function(d) { return d ; } )
+//		.text( function(d) { return d ; } )
 		;
 }
 
