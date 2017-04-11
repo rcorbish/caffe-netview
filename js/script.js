@@ -130,9 +130,9 @@ function defineStages() {
 
 	const checkBoxes = stageDiv.selectAll( "input[type='checkbox']" ) 
 		.data( dat )
-		.attr( 'name', function(d) { return d ; } )
+		.attr( 'name', 'stage' )
 		.attr( 'value', function(d) { return d ; } )
-//		.text( function(d) { return d ; } ) 
+		.text( function(d) { return d ; } ) 
 		;
 	checkBoxes.exit()
 		.remove()
@@ -141,9 +141,9 @@ function defineStages() {
 		.append( 'input' )
 		.on( 'change', Redraw )
 		.attr( 'type', 'checkbox' )
-		.attr( 'name', function(d) { return d ; } )
+		.attr( 'name', 'stage' )
 		.attr( 'value', function(d) { return d ; } )
-//		.text( function(d) { return d ; } )
+		.text( function(d) { return d ; } )
 		;
 }
 
