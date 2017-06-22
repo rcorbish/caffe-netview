@@ -85,7 +85,7 @@ function Redraw() {
 
 	var stageParam = null ;
 	const stages = document.querySelector( ".stages" ) ;
-	const stageCheckboxes = stages.querySelectorAll( "input" ) ;
+	const stageCheckboxes = stages.querySelectorAll( "input[type='checkbox']" ) ;
 	const checkedStages = [] ;
 	for( let i=0 ; i<stageCheckboxes.length ; i++ ) {
 		let stageCheckbox = stageCheckboxes[i] ;
@@ -120,15 +120,11 @@ function Redraw() {
 	of nodes in the network
 */
 function defineStages() {
-	var dat = [] ;
-	for( let i=0 ; i<netobj.stages.length ; i++ ) {
-		dat = dat.concat( netobj.stages[i] ) ;
-	}
-	dat = dat.filter( (e,i,a) => a.indexOf(e) === i ) ;
+	const dat = Object.keys( netobj.stages ) ;
 
 	const stageDiv = d3.select(".stages") ;
 
-	const checkBoxes = stageDiv.selectAll( "input[type='checkbox']" ) 
+	const checkBoxes = stageDiv.selectAll( ".stages input[type='checkbox']" ) 
 		.data( dat )
 		.attr( 'name', 'stage' )
 		.attr( 'value', function(d) { return d ; } )
@@ -138,12 +134,17 @@ function defineStages() {
 		.remove()
 		;
 	checkBoxes.enter()
+		.append( 'label' )
+		.attr( 'for', function(d) { return d ; } )
+		.text( function(d) { return d ; } )
 		.append( 'input' )
 		.on( 'change', Redraw )
+		.attr( 'checked', function(d) { return dat[d] ? "checked" : "" ; } )
 		.attr( 'type', 'checkbox' )
 		.attr( 'name', 'stage' )
 		.attr( 'value', function(d) { return d ; } )
-		.text( function(d) { return d ; } )
+		.attr( 'id', function(d) { return d ; } )
+//		.text( function(d) { return d ; } )
 		;
 }
 

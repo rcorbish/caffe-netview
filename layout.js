@@ -35,24 +35,36 @@ function layout( netobj, includedStages ) {
 
 		const rc = {} ;
 		rc.nodes = [] ;
-		
 		// layers can be new or old name :(
-		const layers = ( ( netobj.layer.length === 0 ) ? netobj.layers : netobj.layer )
+		var layers = ( ( netobj.layer.length === 0 ) ? netobj.layers : netobj.layer ) ;
+
+		const stages = {} ;
+		for( let i=0 ; i<layers.length ; i++ ) {
+			for( let j=0 ; j<layers[i].include.length ; j++ ) {
+				if( layers[i].include[j].stage.length ) {
+					stages[layers[i].include[j].stage] = false ;
+				}
+				if( layers[i].include[j].not_stage.length ) {
+					stages[layers[i].include[j].not_stage] = false ;
+				}
+			}
+		}		
+
+		layers = layers
 			.filter( item => 
 						!includedStages || 
 						item.include.length===0 || 
 						item.include[0].stage.indexOf( includedStages ) >= 0 
 					) ;		
 		
-		const stages = [] ;
 		// find all the data blobs - these will be nodes
 		for( let i=0 ; i<layers.length ; i++ ) {
 			for( let j=0 ; j<layers[i].include.length ; j++ ) {
 				if( layers[i].include[j].stage.length ) {
-					stages.push( layers[i].include[j].stage ) ;
+					stages[layers[i].include[j].stage] = true ;
 				}
 				if( layers[i].include[j].not_stage.length ) {
-					stages.push( layers[i].include[j].not_stage ) ;
+					stages[layers[i].include[j].not_stage] = true ;
 				}
 			}
 
@@ -67,7 +79,8 @@ function layout( netobj, includedStages ) {
 				}
 			}
 		}
-		rc.stages = stages.filter((v, i, a) => a.indexOf(v) === i); 
+//		rc.stages = stages.filter((v, i, a) => a.indexOf(v) === i); 
+		rc.stages = stages ; 
 		// Now add each actual layer 
 		for( var i=0 ; i<layers.length ; i++ ) {
 			let node = { 'type' : layers[i].type.toLowerCase(), "name" : layers[i].name, 'xPreferred' : (i-layers.length/2) * 50 } ;
