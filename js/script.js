@@ -90,11 +90,13 @@ function Redraw() {
 	for( let i=0 ; i<stageCheckboxes.length ; i++ ) {
 		let stageCheckbox = stageCheckboxes[i] ;
 		if( stageCheckbox.checked ) {
-			checkedStages.push( stageCheckbox.name ) ;
+			checkedStages.push( stageCheckbox.value ) ;
 		}
 	}
-	
-	xhr.open("POST", "upload?stage="+checkedStages.join('&stage=') );
+	const url = checkedStages.length>0 ? 
+				"upload?stage="+checkedStages.join('&stage=') :
+				"upload"
+	xhr.open("POST", url );
 	xhr.setRequestHeader( "accept", "text/html" ) ;
 	xhr.overrideMimeType('application/javascript; charset=utf-8');
 	xhr.onreadystatechange = function() {
@@ -124,27 +126,36 @@ function defineStages() {
 
 	const stageDiv = d3.select(".stages") ;
 
-	const checkBoxes = stageDiv.selectAll( ".stages input[type='checkbox']" ) 
+	const labels = stageDiv.selectAll( ".stages label" ) 
 		.data( dat )
-		.attr( 'name', 'stage' )
-		.attr( 'value', function(d) { return d ; } )
-		.text( function(d) { return d ; } ) 
-		;
-	checkBoxes.exit()
-		.remove()
-		;
-	checkBoxes.enter()
-		.append( 'label' )
-		.attr( 'for', function(d) { return d ; } )
 		.text( function(d) { return d ; } )
-		.append( 'input' )
+		;
+
+	labels.append( 'input' )
 		.on( 'change', Redraw )
-		.attr( 'checked', function(d) { return dat[d] ? "checked" : "" ; } )
+		.property( "checked", function(d) { 
+			return netobj.stages[d] ; 
+		})
 		.attr( 'type', 'checkbox' )
 		.attr( 'name', 'stage' )
 		.attr( 'value', function(d) { return d ; } )
-		.attr( 'id', function(d) { return d ; } )
-//		.text( function(d) { return d ; } )
+		; 
+	
+	labels.exit()
+		.remove()
+		;
+
+	labels.enter()
+		.append( 'label' )
+		.text( function(d) { return d ; } ) 
+		.append( 'input' )
+		.on( 'change', Redraw )
+		.property( "checked", function(d) { 
+			return netobj.stages[d] ; 
+		})
+		.attr( 'type', 'checkbox' )
+		.attr( 'name', 'stage' )
+		.attr( 'value', function(d) { return d ; } )
 		;
 }
 

@@ -30,7 +30,7 @@ module.exports = function( text, includedStages ) {
 
 
 function layout( netobj, includedStages ) {
-		
+	console.log( "Laying out for stages:", includedStages ) ;
 	return new Promise( function( resolve, reject ) {
 
 		const rc = {} ;
@@ -49,25 +49,19 @@ function layout( netobj, includedStages ) {
 				}
 			}
 		}		
-
-		layers = layers
-			.filter( item => 
-						!includedStages || 
-						item.include.length===0 || 
-						item.include[0].stage.indexOf( includedStages ) >= 0 
-					) ;		
-		
+		console.log( "Found new stages", stages, "in", layers.length, "layers" ) ;
+		if( includedStages !== undefined ) {
+			layers = layers
+				.filter( item => 
+							!item.include[0] || 
+							(item.include[0].stage && item.include[0].stage.indexOf( includedStages ) >= 0 ) ||
+							(item.include[0].not_stage && item.include[0].not_stage.indexOf( includedStages ) < 0 )
+						) ;		
+			console.log( "Filtered to", layers.length, "layers" ) ;
+			stages[includedStages] = true 
+		}
 		// find all the data blobs - these will be nodes
 		for( let i=0 ; i<layers.length ; i++ ) {
-			for( let j=0 ; j<layers[i].include.length ; j++ ) {
-				if( layers[i].include[j].stage.length ) {
-					stages[layers[i].include[j].stage] = true ;
-				}
-				if( layers[i].include[j].not_stage.length ) {
-					stages[layers[i].include[j].not_stage] = true ;
-				}
-			}
-
 			for( var t=0 ; t<layers[i].top.length ; t++ ) {		
 				if( !rc.nodes.find( function(e){ return e.name==='blob-'+layers[i].top[t] ; } ) ) {   						
 					rc.nodes.push( { 'type':'blob', "name" : 'blob-' + layers[i].top[t] } ) ;
@@ -79,6 +73,8 @@ function layout( netobj, includedStages ) {
 				}
 			}
 		}
+		console.log( "Set stage visiblity to", stages ) ;
+
 //		rc.stages = stages.filter((v, i, a) => a.indexOf(v) === i); 
 		rc.stages = stages ; 
 		// Now add each actual layer 
