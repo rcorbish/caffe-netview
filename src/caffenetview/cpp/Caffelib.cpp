@@ -2,13 +2,13 @@
 #include <fcntl.h>
 
 //#include <gflags/gflags.h>
-//#include <glog/logging.h>
+#include <glog/logging.h>
 
 
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 
-#include <caffe/caffe.hpp>
+//#include <caffe/caffe.hpp>
 #include <caffe/proto/caffe.pb.h> 
 
 #include "Caffelib.hpp"

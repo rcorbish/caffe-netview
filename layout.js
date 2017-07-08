@@ -1,7 +1,8 @@
 
 const fs = require( "fs" ) ;
 const pb = require("node-protobuf") ;
-const cnv = require( "caffe-netview" ) ;
+const cnv = require( "./build/Release/caffe-netview" )
+
 
 const protobufDesc = fs.readFileSync("caffe-protocol.protodesc" ) ;
 const protobufParser = new pb( protobufDesc ) ;

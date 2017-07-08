@@ -9,11 +9,11 @@ model {
                 headers.srcDir "3rd-party-lib/boost_1_55_0/boost"                
             }
             nodev8 {
-            	headers.srcDir "/home/richard/.node-gyp/7.1.0/include/node" 
+            	headers.srcDir "/home/richard/.node-gyp/8.1.2/include/node" 
             }
-            caffe { 
-            	headers.srcDir "/home/richard/caffe/include"
-            	headers.srcDir "/home/richard/caffe/.build_release/src" 
+            Caffe2_CPU { 
+            	headers.srcDir "/home/richard/workspace/caffe2/include"
+            	headers.srcDir "/home/richard/workspace/caffe2/.build_release/src" 
             }
             cuda { 
             	headers.srcDir "/usr/local/cuda/include" 
@@ -28,6 +28,7 @@ model {
             cppCompiler.define "CPU_ONLY"
             cppCompiler.define "USE_OPENCV"
             cppCompiler.define "USE_LMDB"
+            //srcDir "/home/richard/workspace/caffe2/build/caffe2"
 
             if (toolChain in Gcc) {
                 cppCompiler.args "-MMD", "-MP",  "-pthread", "-fPIC", "-O2", "-fmax-errors=5", "-Wno-sign-compare" 
@@ -41,11 +42,11 @@ model {
 			binaries.withType(StaticLibraryBinarySpec) {
                 buildable = false
             }	
-   			sources {
+   			sources {              
 		      cpp.lib library: 'boost', linkage: 'api'
               cpp.lib library: 'nodev8', linkage: 'api'
               cpp.lib library: 'cuda', linkage: 'api'
-              cpp.lib library: 'caffe', linkage: 'api'
+              cpp.lib library: 'Caffe2_CPU', linkage: 'api'
     	   } 
     	}
     }
@@ -77,7 +78,7 @@ task gypbuild( dependsOn: 'gypconfig', type: Exec) {
 
 
 task protobufdescriptor( type: Exec ) {
-	inputs.file '/home/richard/caffe/src/caffe/proto/caffe.proto'
+	inputs.file '/home/richard/workspace/caffe2/caffe/proto/caffe.proto'
 	outputs.file 'caffe-protocol.protodesc'
 
 	description 'Compiles the caffe protobuf to a descriptor (used by node-proto package)'
@@ -87,7 +88,7 @@ task protobufdescriptor( type: Exec ) {
 	arglist += '-o' 
 	arglist += protobufdescriptor.outputs.files 
 	arglist += '--proto_path'
-	arglist += '/home/richard/caffe/src/caffe/proto/'
+	arglist += '/home/richard/workspace/caffe2/caffe/proto/'
     args arglist	
 }
 

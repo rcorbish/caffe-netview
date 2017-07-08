@@ -9,9 +9,9 @@
       "sources": [ "src/Caffe.cpp" ], 
       "libraries": [
         "-Llibs/caffenetview/shared", 
-        "-L/home/richard/caffe/.build_release/lib",
+        "-L/home/richard/workspace/caffe2/build/caffe2",
 	    "-lcaffenetview", "-lpthread", "-lgfortran", 
-	    "-lboost_system", "-lcaffe"
+	    "-lboost_system", "-lCaffe2_CPU"
       ],
       'include_dirs': [
         "src/caffenetview/headers"
